@@ -5,21 +5,8 @@ class Controller {
   //get All
   async getAll(req, res, next) {
     try {
-      const response =(await Model.find()).map((item) => {
-        let image;
-        if (item.image_url) {
-          const file = fs.readFileSync(item.image_url);
-          image = Buffer.from(file).toString("base64");
-        }
-        return {
-          title: item.title,
-          description: item.description,
-          section: item.section,
-          id: item.id,
-          image,
-        };
-      });
-      return res.status(200).json(response);
+      const respon = await Model.find({});
+      return res.status(200).json(respon);
     } catch (err) {
       return res.status(500).json({
         data: err,
@@ -73,11 +60,10 @@ class Controller {
         return res.status(404).json({ message: "About not found" });
       }
 
-      const { title, description, section } = req.body;
-      if(title) about.title = title;
-      if(description) about.description = description;
-      if(section) about.section = section;
-      if(req.file) about.image_url = req.file.path;
+      about.title = req.body.title;
+      about.description = req.body.description;
+      about.image_url = req.file.path;
+      about.section = req.body.section;
 
       const updatedAbout = await about.save();
       res.json(updatedAbout);
