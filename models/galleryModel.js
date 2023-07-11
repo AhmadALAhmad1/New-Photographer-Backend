@@ -3,12 +3,14 @@ const { Schema, model } = mongoose;
 
 const gallerySchema = new Schema(
     {
-        category:{
+        CatID: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Category",
+        },
+        image: {
             type: String,
             required: true
         },
-        image: { type: String,
-                required: true },
     },
 
     {
@@ -17,5 +19,5 @@ const gallerySchema = new Schema(
 
 );
 
-const Gallery= model('Gallery', gallerySchema);
+const Gallery = model('Gallery', gallerySchema);
 export default Gallery;

@@ -14,6 +14,8 @@ import bodyParser from "body-parser";
 import aboutRoutes from './routes/aboutRoute.js'
 import contactRoutes from './routes/contactRouter.js';
 import galleryRoutes from "./routes/galleryRoute.js";
+import GalleryBetaRouter from "./routes/galleryBetaRoute.js";
+import CategoryRouter from "./routes/categoryRoute.js";
 import fileUpload from 'express-fileupload';
 
 dotenv.config();
@@ -35,7 +37,7 @@ dotenv.config();
 app.use(bodyParser.urlencoded({
   extended: true
 }));
-app.use('/uploads',express.static('uploads'))
+app.use('/uploads', express.static('uploads'))
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
@@ -56,7 +58,10 @@ app.use("/api/Orders", OrderRouter);
 app.use("/api/ItemOrders", ItemOrderRouter);
 //User
 app.use('/api/users', UserRouter);
+//////////////////////////////////////////////////////
+//GallerY beta
+app.use('/api/gallerybeta', GalleryBetaRouter);
+app.use('/api/category', CategoryRouter);
 
 app.listen(port, () => console.log(`Server started on port ${port}`));
-
 

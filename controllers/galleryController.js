@@ -1,65 +1,73 @@
-import Gallery from "../models/galleryModel.js";
-import cloudinary from "../utils/cloudinary.js";
-import axios from 'axios';
+import galleryModel from '../models/galleryModel.js'
 
-export const createPhoto = async (req,res)=>{
-  console.log(req.body.category)
-     const category = req.body.category;
-     const file = req.file.path;
-     try {
-        const result = await cloudinary.uploader.upload(file,{
-         public_id: `${Date.now()}`,
-         resource_type:"auto",
-          folder:"Gallery",
-        });
-        const newPhoto = await Gallery.create({
-            category,
-            image:result.url
-           });
-        const save = await newPhoto.save();
-        res.status(201).json({
-            success: true,
-             newPhoto
-        });
-      } catch (error) {
-        res.status(400).json({ message: error.message });
-      }
-}
-export const getAllPhotos = async (req, res) => {
+class Controller {
+
+  // Create a new product
+  async createPhoto(req, res) {
     try {
-      console.log("hi am here")
-      const photos = await Gallery.find().lean();
-      const newPhotos = await Promise.all(
-        photos.map(async (photo) => {
-          const imageUrl = cloudinary.url(photo.image);
-          const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
-          const base64Image = Buffer.from(imageResponse.data).toString('base64');
-          return {
-            _id: photo._id,
-            category: photo.category,
-            image: base64Image,
-          };
-        })
-      );
-      console.log(newPhotos)
-      res.status(200).json(newPhotos);
+      const { CatID } = req.body;
+      const photo = new galleryModel({
+        CatID,
+        image: req.file.path,
+
+      });
+      await photo.save();
+      res.status(201).json(photo);
     } catch (error) {
-      res.status(400).json({ message: error.message });
+      res.status(400).json({ error: 'Bad Request' });
     }
   };
-  
-  export const deletePhoto = async (req, res) => {
-    console.log("hiii",req.params.id)
+
+
+  async getAllPhotos(req, res) {
+    try {
+
+      const allItems = await galleryModel.find();
+      const imageData = allItems.map(item => {
+        return {
+          _id: item._id,
+          category: item.CatID,
+          image: `${req.protocol}://${req.get('host')}/${item.image}`
+        }
+      });
+      return res.status(200).json({
+        status: 200,
+        success: true,
+        data: imageData
+      })
+    } catch (error) {
+      return res.status(500).json({
+        status: 500,
+        success: false,
+        message: error.message
+      })
+    }
+  };
+
+  async deletePhoto(req, res) {
     const { id } = req.params
     try {
-        const deletedPhoto = await Gallery.findByIdAndDelete(id);
+        const deletedImage = await galleryModel.findByIdAndDelete(id);
 
-      if (!deletedPhoto) {
-        return res.status(404).json({ message: 'Photo not found' });
-      }
-      res.json({ message: 'Photo deleted successfully' });
+        if (!deletedImage) {
+            return res.status(404).json({
+                status: 404,
+                success: false,
+                message: `image with id=${id} doesn't exist`
+            })
+        }
+        return res.status(200).json({
+            status: 200,
+            success: true,
+            message: "image deleted successfully"
+        })
     } catch (error) {
-      res.status(500).json({ message: error.message });
+        return res.status(400).json({ message: error.message });
     }
-  };
-  
+}
+
+
+}
+
+const controller = new Controller()
+export default controller;
